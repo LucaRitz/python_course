@@ -12,5 +12,5 @@ class BridgeAndTorchTest(unittest.TestCase):
 
         # Assert
         self.assertIsNotNone(result)
-        self.assertTrue(result.p <= 15)
         print(result.p)
+        self.assertTrue(result.p <= 15)
