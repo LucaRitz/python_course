@@ -43,7 +43,7 @@ class Action:
 
 class BridgeAndTorchSearchNode(ai.SearchNode):
 
-    def __init__(self, state, d, p, a, visited_states=[]):
+    def __init__(self, state, d=0, p=0, a=None, visited_states=[]):
         super().__init__(state, d, p, a)
         self.visited_states = visited_states
 
@@ -58,22 +58,23 @@ class BridgeAndTorchSearchNode(ai.SearchNode):
         state_without_torch = self.state[:-1]
 
         for person_index, person in enumerate(state_without_torch):
-            for companion_index, companion in enumerate(state_without_torch):
-                if person[1] == companion[1] and torch_position == person[1]:
-                    new_pos = Position.invert(person[1])
-                    action = Action(person, companion, new_pos)
-                    acc_cost = self.p + max(person[0].speed, companion[0].speed)
-                    new_state = state_without_torch.copy()
-                    new_state.remove(person)
-                    new_state.insert(person_index, tuple((person[0], new_pos)))
-                    if person[0] != companion[0]:
-                        new_state.remove(companion)
-                        new_state.insert(companion_index, tuple((companion[0], new_pos)))
-                    new_state.append(tuple((None, new_pos)))
+            if torch_position == person[1]:
+                for companion_index, companion in enumerate(state_without_torch):
+                    if person[1] == companion[1]:
+                        new_pos = Position.invert(person[1])
+                        action = Action(person, companion, new_pos)
+                        acc_cost = self.p + max(person[0].speed, companion[0].speed)
+                        new_state = state_without_torch.copy()
+                        new_state.remove(person)
+                        new_state.insert(person_index, tuple((person[0], new_pos)))
+                        if person[0] != companion[0]:
+                            new_state.remove(companion)
+                            new_state.insert(companion_index, tuple((companion[0], new_pos)))
+                        new_state.append(tuple((None, new_pos)))
 
-                    if new_state not in self.visited_states or BridgeAndTorchSearchNode.test_goal(new_state):
-                        self.visited_states.append(new_state)
-                        expanded.append(BridgeAndTorchSearchNode(new_state, self.d + 1, acc_cost, action))
+                        if new_state not in self.visited_states or BridgeAndTorchSearchNode.test_goal(new_state):
+                            self.visited_states.append(new_state)
+                            expanded.append(BridgeAndTorchSearchNode(new_state, self.d + 1, acc_cost, action))
         return list(map(lambda node: BridgeAndTorchSearchNode.from_copy(node, self.visited_states), expanded))
 
     def is_goal(self):
@@ -87,5 +88,5 @@ class BridgeAndTorchSearchNode(ai.SearchNode):
 
 def find_solution(persons):
     start_state = list(map(lambda person: tuple((person, Position.left)), persons)) + [tuple((None, Position.left))]
-    start_node = BridgeAndTorchSearchNode(start_state, 0, 0, None)
+    start_node = BridgeAndTorchSearchNode(start_state)
     return ai.search(start_node, ai.BestFirstStrategy())
