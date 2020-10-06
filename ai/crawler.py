@@ -1,7 +1,8 @@
+from urllib.parse import urlparse
+
 import requests
 import ai.model as ai
 from bs4 import BeautifulSoup, SoupStrainer
-from urllib.parse import urlparse
 
 
 class CrawlerSearchNode(ai.SearchNode):
@@ -16,10 +17,15 @@ class CrawlerSearchNode(ai.SearchNode):
         return cls(node.target, node.state, node.d, node.p, node.a, visited_states)
 
     def expand(self):
-        print('Expand: ' + self.state)
         expanded = []
 
+        self.state = CrawlerSearchNode.fix_internal_url(self.state, self.a)
+        print('Expand: ' + self.state)
+
         try:
+            head = requests.head(self.state)
+            if "content-type" not in head.headers or "text/html" not in head.headers["content-type"]:
+                return []
             response = requests.get(self.state)
         except requests.exceptions.RequestException:
             print('Error - Could not expand: ' + self.state)
@@ -30,13 +36,10 @@ class CrawlerSearchNode(ai.SearchNode):
 
         for link in BeautifulSoup(markup=response.text, features='html.parser', parse_only=SoupStrainer('a')):
             if link.has_attr('href'):
-                url = CrawlerSearchNode.parse(link['href'])
-                if not CrawlerSearchNode.valid_url(url):
-                    continue
+                url = link['href']
 
-                url_key = CrawlerSearchNode.hostname(url)
-                if url_key not in self.visited_states or CrawlerSearchNode.test_goal(self.target, url):
-                    self.visited_states.append(url_key)
+                if url not in self.visited_states or CrawlerSearchNode.test_goal(self.target, url):
+                    self.visited_states.append(url)
                     expanded.append(CrawlerSearchNode(self.target, url, self.d + 1, self.p + 1, self.state))
 
         return list(map(lambda node: CrawlerSearchNode.from_copy(node, self.visited_states), expanded))
@@ -49,18 +52,12 @@ class CrawlerSearchNode(ai.SearchNode):
         return state.find(target) > -1
 
     @staticmethod
-    def valid_url(url):
-        return url.find('http') > -1 or url.find('https') > -1
-
-    @staticmethod
-    def parse(url):
-        parsed_uri = urlparse(url)
-        return '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
-
-    @staticmethod
-    def hostname(url):
-        parsed_uri = urlparse(url)
-        return '{uri.netloc}'.format(uri=parsed_uri)
+    def fix_internal_url(url, parent_url):
+        if url.startswith('http') or url.startswith("www"):
+            return url
+        parsed_uri = urlparse(parent_url)
+        base_url = '{uri.scheme}://{uri.netloc}'.format(uri=parsed_uri)
+        return base_url + url
 
 
 def find_path(from_url, to_url):
