@@ -7,6 +7,8 @@ from bs4 import BeautifulSoup, SoupStrainer
 
 class CrawlerSearchNode(ai.SearchNode):
 
+    forbidden = ['../']
+
     def __init__(self, target, state, d=0, p=0, a=None, visited_states=[]):
         super().__init__(state, d, p, a)
         self.target = target
@@ -20,6 +22,9 @@ class CrawlerSearchNode(ai.SearchNode):
         expanded = []
 
         self.state = CrawlerSearchNode.fix_internal_url(self.state, self.a)
+        if any(forb in self.state for forb in CrawlerSearchNode.forbidden):
+            return []
+
         print('Expand: ' + self.state)
 
         try:
