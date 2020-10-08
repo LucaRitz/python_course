@@ -11,3 +11,5 @@ class CrawlerTest(unittest.TestCase):
         # Assert
         self.assertIsNotNone(result)
         print(result.p)
+        print(result.state)
+        print("From: " + result.a)
