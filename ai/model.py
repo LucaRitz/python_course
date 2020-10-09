@@ -1,3 +1,4 @@
+import random
 
 class SearchNode:
 
@@ -101,3 +102,51 @@ def ids(candidates, limit):
         if result is not None:
             break
     return result
+
+
+######################################################
+def genetic_algorithm(population, reproduce_fnc, mutate_fnc, fitness_fnc, max_epoch):
+    for current_epoch in range(max_epoch):
+        new_population = []
+        for i in range(len(population)):
+            x = __random_select(population, fitness_fnc)
+            y = __random_select(population, fitness_fnc)
+            child = reproduce_fnc(x, y)
+            if __do_mutate():
+                child = mutate_fnc(child)
+            new_population.extend(child)
+        population = new_population
+    return __best(population, fitness_fnc)
+
+
+def __random_select(population, fitness_fnc):
+    range_of_parent = {}
+    counter = 0
+    for parent in population:
+        fitness = fitness_fnc(parent)
+        range_of_parent[(counter, counter + fitness)] = parent
+        counter += fitness + 1
+
+    ticket = random.randrange(0, counter - 1)
+    for tickets in range_of_parent:
+        if tickets[0] <= ticket <= tickets[1]:
+            return range_of_parent[tickets]
+    return None
+
+
+def __do_mutate():
+    number = random.randrange(0, 1000)
+    return number == 1
+
+
+def __best(population, fitness_fnc):
+    best = None
+    best_fitness = 0
+
+    for pop in population:
+        fitness = fitness_fnc(pop)
+        if fitness > best_fitness:
+            best = pop
+            best_fitness = fitness
+
+    return best
