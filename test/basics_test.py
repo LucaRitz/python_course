@@ -108,5 +108,75 @@ class LstLenTest(unittest.TestCase):
         self.assertEqual(expected, result)
 
 
+class FlatTest(unittest.TestCase):
+    @parameterized.expand([
+        [[[3, 8], [8, 9, 9], [1, 2]], [3, 8, 8, 9, 9, 1, 2]]
+    ])
+    def test_lst_len_getExpected(self, values, expected):
+        # Act
+        result = basics.flat(values)
+
+        # Assert
+        self.assertEqual(expected, result)
+
+
+class RemoveMinMaxText(unittest.TestCase):
+
+    def test_remove_min_max_getExpected(self):
+        values = {
+            "a": 4,
+            "c": 5,
+            "d": 7,
+            "k": 1,
+            "j": 0
+        }
+
+        # Act
+        result = basics.remove_min_max(values)
+
+        # Assert
+        self.assertFalse('j' in result)
+        self.assertFalse('d' in result)
+        self.assertEqual(3, len(result))
+
+
+class PhoneKeyboardTest(unittest.TestCase):
+
+    def test_phone_keyboard_dialNumber(self):
+        keyboard = basics.PhoneKeyboard()
+        keyboard.press('1')
+        keyboard.press('2')
+        keyboard.press('2')
+        keyboard.press('2')
+        keyboard.press('2')
+        keyboard.backspace()
+        keyboard.press('3')
+        keyboard.press('2')
+        keyboard.press('0')
+        keyboard.press('9')
+        keyboard.press('8')
+        keyboard.press('9')
+
+        # Act
+        result = keyboard.dial()
+
+        # Assert
+        self.assertEqual('1222320989', result)
+
+
+class CarTest(unittest.TestCase):
+
+    def test_driveToBern_getExpected(self):
+        car = basics.Car(7)
+        car.fill(20)
+        car.drive(200)
+
+        # Act
+        gas_left = car.gas()
+
+        # Assert
+        self.assertEqual(6, gas_left)
+
+
 if __name__ == '__main__':
     unittest.main()
