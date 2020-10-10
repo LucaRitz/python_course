@@ -7,7 +7,7 @@ class EightDameTest(unittest.TestCase):
 
     def test_eightDame(self):
         # Act
-        result = ed.eight_dame(100_000)
+        result = ed.eight_dame(1_000_000)
 
         # Assert
         self.assertIsNotNone(result)

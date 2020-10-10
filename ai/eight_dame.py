@@ -16,15 +16,15 @@ def eight_dame(max_epoch):
 def fitness_fnc(value):
     valid_counter = 0
     for inx, pos in enumerate(value):
-        for other_inx, other_pos in enumerate(value):
-            if inx != other_inx:
-                if pos == other_pos:
-                    continue
-                other_forbidden = abs(other_inx - inx)
-                if other_pos + other_forbidden == pos or other_pos - other_forbidden == pos:
-                    continue
-                valid_counter += 1
-    return valid_counter
+        for other_inx in range(inx + 1, 8):
+            other_pos = value[other_inx]
+            if pos == other_pos:
+                continue
+            other_forbidden = abs(other_inx - inx)
+            if other_pos + other_forbidden == pos or other_pos - other_forbidden == pos:
+                continue
+            valid_counter += 1
+    return valid_counter ** 5
 
 
 def __reproduce_fnc(father, mother):
