@@ -1,18 +1,27 @@
 import random
+from dijkstar import Graph, find_path
+import ai.model as ai
 
 
 def traveller(node, max_epoch):
-    roundtrip = generate_random_roundtrip(node)
-    for trip in roundtrip:
-        print(trip.id)
-    return roundtrip
+    roundtrip_1 = __generate_random_roundtrip(node)
+    roundtrip_2 = __generate_random_roundtrip(node)
+    roundtrip_3 = __generate_random_roundtrip(node)
+    return ai.genetic_algorithm((roundtrip_1, roundtrip_2, roundtrip_3), __reproduce_fnc, lambda val: val, __get_cost, max_epoch)
 
 
+def __reproduce_fnc(roundtrip_1, roundtrip_2):
+    return [roundtrip_1]
 
-def generate_random_roundtrip(start_node):
+
+def __get_cost(roundtrip):
+    return 1
+
+
+def __generate_random_roundtrip(start_node):
     roundtrip = [start_node]
     __expand_node(start_node, roundtrip)
-    roundtrip = __close_cycle(roundtrip)
+    roundtrip = __close_cycle(start_node, roundtrip)
 
     return roundtrip
 
@@ -26,37 +35,38 @@ def __expand_node(node, roundtrip):
             __expand_node(to_visit, roundtrip)
 
 
-def __close_cycle(roundtrip):
-    first_node = roundtrip[0]
-    last_node = roundtrip[-1]
-    returnToStart = __greedy_shortest_path(last_node, first_node, [])
-    return roundtrip + returnToStart[1:-2]
+def __close_cycle(node, roundtrip):
+    graph = Graph(undirected=True)
+    __to_dijkstra(node, graph)
+    first_node = roundtrip[0].id
+    last_node = roundtrip[-1].id
+    path_info = find_path(graph, last_node, first_node)
+
+    return roundtrip + __to_nodes(node, path_info)[1:-2]
 
 
-def __greedy_shortest_path(start, end, expanded, cost=0):
-    if start == end:
-        return [start]
-    else:
-        children_with_acc_cost = list(map(lambda child: (child[0], child[1] + cost), start.children))
-        expanded.extend(children_with_acc_cost)
-        next_child = __find_closest(expanded)
-
-        if next_child is not None:
-            path_of_children = __greedy_shortest_path(next_child[0], end, expanded, next_child[1])
-            if path_of_children:
-                return [start] + path_of_children
-
-    return []
+def __to_dijkstra(node, graph):
+    for child in node.children:
+        if node.id not in graph.get_data() or child[0].id not in graph.get_data()[node.id]:
+            graph.add_edge(node.id, child[0].id, child[1])
+            __to_dijkstra(child[0], graph)
 
 
-def __find_closest(expanded):
-    next_child = None
-    for child in expanded:
-        if next_child is None or child[1] < next_child[1]:
-            next_child = child
-    expanded.remove(next_child)
+def __to_nodes(node, path_info):
+    path = []
+    for node_id in path_info.nodes:
+        path.append(__find_node(node, node_id, []))
+    return path
 
-    return next_child
+
+def __find_node(node, node_id, visited):
+    visited.append(node)
+    if node.id == node_id:
+        return node
+    for child in node.children:
+        if child[0] not in visited:
+            return __find_node(child[0], node_id, visited)
+    return None
 
 
 def __pop_random(nodes):

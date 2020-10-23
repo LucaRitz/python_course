@@ -14,12 +14,12 @@ class TravellingSalesmanTest(unittest.TestCase):
 
     @staticmethod
     def __city():
-        city_a = tr.Node('a')
-        city_b = tr.Node('b')
-        city_c = tr.Node('c')
-        city_d = tr.Node('d')
-        city_e = tr.Node('e')
-        city_f = tr.Node('f')
+        city_a = tr.Node(1)
+        city_b = tr.Node(2)
+        city_c = tr.Node(3)
+        city_d = tr.Node(4)
+        city_e = tr.Node(5)
+        city_f = tr.Node(6)
 
         city_a.append_child(city_b, 10)
         city_a.append_child(city_c, 5)
